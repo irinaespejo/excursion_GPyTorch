@@ -43,7 +43,7 @@ def main():
     else:
         device = torch.device("cpu")
 
-    print("Using device", type(device))
+    print("Using device", device)
 
     algorithmopts = yaml.safe_load(open(args.algorithm_specs, "r"))
 

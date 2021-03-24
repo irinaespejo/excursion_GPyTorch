@@ -39,6 +39,8 @@ scaler = sklearn.preprocessing.MinMaxScaler()
 scaler.fit(truthX)
 truthX = scaler.transform(truthX)
 
+truthX = torch.from_numpy(truthX)
+
 picklefile = pkg_resources.resource_filename(
     "excursion", "testcases/data/checkmate.pkl"
 )
@@ -52,7 +54,6 @@ def truth_obs(X):
     from scipy.interpolate import griddata
     grid_data = torch.from_numpy(griddata(truthX,truthy_obs,X))
     return grid_data
-
 
 
 

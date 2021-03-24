@@ -2,13 +2,13 @@
 # ALGORITHM OPTS
 #
 
-example: 'checkmate' #'3Dtoyanalysis'
+example: '2Dtoyanalysis' #'3Dtoyanalysis'
 
 #number of initial points
-ninit: 10
+ninit: 5000
 
 #number of iterations
-nupdates: 100
+nupdates: 4
 
 ##Define the init training data type
 init_type: 'random'

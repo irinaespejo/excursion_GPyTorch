@@ -2,13 +2,13 @@
 # ALGORITHM OPTS
 #
 
-example: '1Dtoyanalysis'
+example: 'getMuLimitFast1d'
 
 #number of initial points
 ninit: 2
 
 #number of iterations
-nupdates: 15
+nupdates: 4
 
 ##Define the init training data type
 init_type: 'random'
@@ -24,7 +24,7 @@ likelihood:
 
 #model
 model:
-  type: 'GridGP'
+  type: 'ExactGP'
   kernel: 'RBF'
   prior: 'Constant'
 

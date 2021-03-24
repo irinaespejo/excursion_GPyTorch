@@ -30,8 +30,7 @@ X_plot = mesh2points(plot_meshgrid, rangedef[:, 2])
 X = torch.from_numpy(X_plot)
 
 
-def invalid_region(x):
-    return np.array([False] * len(x))
+x
 
 
 # acq_rd = np.array([[0.0, 1.5, 16], [0.0, 1.5, 16], [0.0, 1.5, 16]])
