@@ -3,18 +3,18 @@ import torch
 from torch.distributions.multivariate_normal import MultivariateNormal
 from torch.distributions.normal import Normal
 import gpytorch
-import excursion
 import time
 import os
 import gc
 import simplejson
 from excursion.models import ExactGP_RBF, GridGPRegression_RBF
+from excursion.active_learning.batch import batchGrid
 
 # from excursion.active_learning import acq
 from excursion.active_learning import acquisition_functions
 import excursion.plotting.onedim as plots_1D
 import excursion.plotting.twodim as plots_2D
-import excursion.plotting.threedim as plots_3D
+#import excursion.plotting.threedim as plots_3D
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 
@@ -226,7 +226,7 @@ class ExcursionSetEstimator:
         self.walltime_step = []
         self.walltime_posterior = []
         self.device = device
-        self.dtype = torch.float64
+        self.dtype = torch.float32
 
         self._acq_type = algorithmopts["acq"]["acq_type"]
         self._X_grid = testcase.X.to(self.device, self.dtype)
@@ -285,7 +285,7 @@ class ExcursionSetEstimator:
         print("pct ", pct)
         return None
 
-    def step(self, testcase, algorithmopts, models, likelihood):
+    def step(self, testcase, algorithmopts, models, likelihood, model_multitask):
         # track wall time
         start_time = time.process_time()
         self.this_iteration += 1
@@ -296,13 +296,13 @@ class ExcursionSetEstimator:
         ################################## number of batches, ordered max indices in grid
         all_acq_values_of_grid = []
         for model in models:
-            this_acq_values_of_grid = self.get_acq_values(model, testcase)
+            this_acq_values_of_grid = self.get_acq_values(model, testcase, model_multitask)
             all_acq_values_of_grid.append(this_acq_values_of_grid)
 
         
         acq_values_of_grid = torch.mean(torch.vstack(all_acq_values_of_grid), dim=0)
 
-        from excursion.active_learning.batch import batchGrid
+        
 
         batchgrid = batchGrid(
             acq_values_of_grid,
@@ -315,7 +315,7 @@ class ExcursionSetEstimator:
         if algorithmopts["acq"]["batch"]:
             batchsize = algorithmopts["acq"]["batchsize"]
             batchtype = algorithmopts["acq"]["batchtype"]
-            sampling_method = algorithmopts["acq"]["sampling"]
+            #sampling_method = algorithmopts["acq"]["sampling"]
 
             new_indexs = batchgrid.batch_types[batchtype](
                 model,
@@ -326,6 +326,7 @@ class ExcursionSetEstimator:
                 likelihood=likelihood,
                 algorithmopts=algorithmopts,
                 excursion_estimator=self,
+                model_multitask=model_multitask,
             )
             self.x_new = (
                 torch.stack([testcase.X[index] for index in new_indexs])
@@ -373,9 +374,9 @@ class ExcursionSetEstimator:
 
         print("x_new ", self.x_new.size(), self.x_new)
 
-        return self.x_new, self.y_new
+        return self.x_new, self.y_new, acq_values_of_grid
 
-    def get_acq_values(self, model, testcase):
+    def get_acq_values(self, model, testcase, model_multitask):
 
         thresholds = [-np.inf] + testcase.thresholds.tolist() + [np.inf]
 
@@ -403,7 +404,7 @@ class ExcursionSetEstimator:
         else:
             start_time = time.time()
             acquisition_values_grid = acquisition_functions[self._acq_type](
-                model, testcase, thresholds, self._X_grid, self.device, self.dtype
+                model, testcase, thresholds, self._X_grid, self.device, self.dtype, model=model_multitask
             )
             end_time = time.time() - start_time
 
@@ -440,7 +441,7 @@ class ExcursionSetEstimator:
 
         return models
 
-    def plot_status(self, testcase, algorithmopts, models, acq_values, outputfolder):
+    def plot_status(self, testcase, algorithmopts, models, acq_values, outputfolder, multitask_model):
 
         if self._n_dims == 1:
             model = models[0]
@@ -485,6 +486,7 @@ class ExcursionSetEstimator:
                 algorithmopts["plot_entropies"],
                 acq=self.acq_values,
                 acq_type=self._acq_type,
+                multitask_model = multitask_model
             )
             plt.tight_layout()
             figname = (

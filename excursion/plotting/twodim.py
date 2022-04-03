@@ -140,7 +140,7 @@ def plot_GP(ax, gps, testcase, device, dtype, batchsize=1, entropy=False, **kwar
         gp.eval()
         likelihood = gp.likelihood
         likelihood.eval()
-        prediction = likelihood(gp(X_plot))
+        prediction = likelihood(gp(X_plot, model=kwargs['multitask_model']))
 
         prediction = values2mesh(
             prediction.mean.detach().cpu().numpy(),
@@ -312,23 +312,4 @@ def plot_GP_init(ax, gp, testcase, device, dtype, batchsize=1):
         framealpha=0.20,
     )
 
-    return ax
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return a

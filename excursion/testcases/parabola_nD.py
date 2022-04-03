@@ -1,8 +1,5 @@
-import numpy as np
 import torch
-from excursion.utils import mgrid, mesh2points
-import sys
-import yaml
+
 
 def truth(x):
     # paraboloid

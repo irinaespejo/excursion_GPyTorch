@@ -5,16 +5,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
+
 # `excursion` — Efficient Excursion Set Estimation 
+[ReadTheDocs](https://excursion.readthedocs.io/en/latest/)
 
 This package implements a Bayesian Optimization procedure based on Gaussian Processes to efficiently determine excursion sets (or equivalently iso-surfaces) of one or many expensive black-box functions.
 
-
 ## Installation and Example
-
-> :warning: We are developing a new version with GPyTorch support and other nice features. If you want to use this developing version then `pip install excursion==???` 
-
-To use the original version:
 
 Install via `pip install excursion==0.0.1a0`.
 
@@ -52,11 +49,6 @@ Typically two simultaneous labels can be assigned, the *expected* and *observed*
 
 <img src="./assets/example.gif" width=600/>
 
-## Documentation
-
-[Docs](https://excursion.readthedocs.io/en/latest/) (to come soon)
-
-
 ## Talks:
 
 * 4th Reinterpretation Workshop [Slides](https://indico.cern.ch/event/702612/contributions/2958660/attachments/1649620/2638023/Contours.pdf)
@@ -66,4 +58,3 @@ Typically two simultaneous labels can be assigned, the *expected* and *observed*
 * Lukas Heinrich, CERN
 * Gilles Louppe, U Liege
 * Kyle Cranmer, NYU
-* Irina Espejo, NYU

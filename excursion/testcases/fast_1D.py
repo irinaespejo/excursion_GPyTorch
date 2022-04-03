@@ -1,8 +1,5 @@
 import torch
 import numpy as np
-from excursion.utils import mgrid, mesh2points
-import math
-
 # Define true functions
 
 
@@ -33,7 +30,6 @@ def function_4(X: torch.Tensor) -> torch.Tensor:
     f4 = X
     return f4
 
-
 def function_5(X):
     f = 30
     return 11-10*(torch.tanh((X-0.3)*3) + 0.15*torch.sin(X*f))
@@ -59,7 +55,10 @@ X = grid_1.view(-1, 1)
 ## Define grid for plotting, with same format as above, default same as X
 plot_X = X
 
-X_plot = np.linspace(rangedef_1[0], rangedef_1[1], rangedef_1[2])
 
-mean_range = X  # default
-plot_y = torch.Tensor([-5, 30])
+true_functions = [function_5]
+# thresholds = [0.7]
+# bounding_box = [[0, 1]]
+# ndim = 1
+# grid_step_size = [100]
+#

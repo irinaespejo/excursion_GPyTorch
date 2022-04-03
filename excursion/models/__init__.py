@@ -1,6 +1,6 @@
 import gpytorch
 import torch
-from . import priors
+#from . import priors
 
 
 class ExactGP_RBF(gpytorch.models.ExactGP):
@@ -14,7 +14,8 @@ class ExactGP_RBF(gpytorch.models.ExactGP):
         elif prior == "Constant":
             self.mean_module = gpytorch.means.ConstantMean()
         elif prior == "Circular":
-            self.mean_module = priors.CircularMean(ndim=train_x.shape[1])
+            pass
+            #self.mean_module = gpytorch.priors.CircularMean(ndim=train_x.shape[1])
         else:
             raise NotImplementedError()
 
@@ -36,11 +37,12 @@ class GridGPRegression_RBF(gpytorch.models.ExactGP):
         num_dims = train_x.size(-1)
         # prior
         if prior == "Lineal":
-            self.mean_module = priors.LinealMean(ndim=train_x.shape[1])
+            self.mean_module = gpytorch.priors.LinealMean(ndim=train_x.shape[1])
         elif prior == "Constant":
             self.mean_module = gpytorch.means.ConstantMean()
         elif prior == "Circular":
-            self.mean_module = priors.CircularMean(ndim=train_x.shape[1])
+            pass
+            #self.mean_module = gpytorch.priors.CircularMean(ndim=train_x.shape[1])
         else:
             raise NotImplementedError()
         self.covar_module = gpytorch.kernels.GridKernel(

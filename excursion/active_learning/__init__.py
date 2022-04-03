@@ -5,12 +5,91 @@ import numpy as np
 import math
 from scipy.stats import norm
 from scipy.linalg import cho_solve
-from excursion.utils import h_normal
+
+
+
+
+#from excursion.utils import h_normal
 from torch.distributions import Normal
-from excursion.utils import truncated_std_conditional
+#from excursion.utils import truncated_std_conditional
 import time
 import os
 import gc
+
+
+import numpy as np
+from scipy.stats import norm
+
+
+def mesh2points(grid, npoints_tuple):
+    ndim = len(npoints_tuple)
+    X = np.moveaxis(grid, 0, ndim).reshape(int(np.product(npoints_tuple)), ndim)
+    return X
+
+
+def mgrid(rangedef):
+    _rangedef = np.array(rangedef, dtype="complex128")
+    slices = [slice(*_r) for _r in _rangedef]
+    return np.mgrid[slices]
+
+
+def values2mesh(values, rangedef, invalid, invalid_value=np.nan):
+    grid = mgrid(rangedef)
+    allX = mesh2points(grid, rangedef[:, 2])
+    allv = np.zeros(len(allX))
+    inv = invalid(allX)
+
+    allv[~inv] = values
+
+    if np.any(inv):
+        allv[inv] = invalid_value
+    return allv.reshape(*map(int, rangedef[:, 2]))
+
+
+def points2mesh(X, npoints_tuple):
+    ndim = len(npoints_tuple)
+    grid = np.moveaxis(X.reshape(*(npoints_tuple + [ndim,])), ndim, 0)
+    return grid
+
+
+def point_entropy(mu_stds, thresholds):
+    thresholds = np.concatenate([[-np.inf], thresholds, [np.inf]])
+
+    entropies = []
+    for mu, std in mu_stds:
+        entropy = 0
+        for j in range(len(thresholds) - 1):
+            p_within = norm(mu, std).cdf(thresholds[j + 1]) - norm(mu, std).cdf(
+                thresholds[j]
+            )
+            p_within[p_within < 1e-9] = 1e-9
+            p_within[p_within > 1 - 1e-9] = 1 - 1e-9
+            entropy -= p_within * np.log(p_within)
+        entropies.append(entropy)
+    return np.mean(np.stack(entropies), axis=0)
+
+
+def point_entropy_gpytorch(mu_stds, thresholds):
+    thresholds = np.concatenate([[-np.inf], thresholds, [np.inf]])
+
+    entropies = []
+    for obs_pred in mu_stds:
+        entropy = 0
+        for j in range(len(thresholds) - 1):
+            p_within = norm(
+                obs_pred.mean.detach().numpy(), obs_pred.stddev.detach().numpy()
+            ).cdf(thresholds[j + 1]) - norm(
+                obs_pred.mean.detach().numpy(), obs_pred.stddev.detach().numpy()
+            ).cdf(
+                thresholds[j]
+            )
+            p_within[p_within < 1e-9] = 1e-9
+            p_within[p_within > 1 - 1e-9] = 1 - 1e-9
+            entropy -= p_within * np.log(p_within)
+        entropies.append(entropy)
+    return np.mean(np.stack(entropies), axis=0)
+
+
 
 
 def cdf(mu, sigma, t):
@@ -28,7 +107,7 @@ def MES_test(gp, testcase, thresholds, X_grid, device, dtype):
     return entropy_grid
 
 
-def MES_gpu(gp, testcase, thresholds, X_grid, device, dtype):
+def MES_gpu(gp, testcase, thresholds, X_grid, device, dtype, model):
 
     # compute predictive posterior of Y(x) | train data
     likelihood = gp.likelihood
@@ -36,7 +115,7 @@ def MES_gpu(gp, testcase, thresholds, X_grid, device, dtype):
     likelihood.eval()
 
     # ok
-    Y_pred_grid = likelihood(gp(X_grid))
+    Y_pred_grid = likelihood(gp(X_grid, model=model))
     mean_tensor = Y_pred_grid.mean
 
     # print('Y_pred_grid.lazy_covariance_matrix.kernel', Y_pred_grid.lazy_covariance_matrix.kernel )
